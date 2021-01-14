@@ -1,0 +1,10 @@
+url: https://jsonplaceholder.typicode.com/posts
+
+method: POST
+
+body: |
+  {
+    title: 'foo',
+    body: 'bar',
+    userId: 1,
+  }
