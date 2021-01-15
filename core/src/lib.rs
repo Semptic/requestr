@@ -1,3 +1,4 @@
+use log::{debug};
 use serde::{Serialize, Deserialize};
 use serde_yaml;
 
@@ -33,6 +34,8 @@ pub fn make_request(url: &str, body: Option<String>, method: Option<String>) -> 
     };
 
     let response = request_builder.send()?;
+
+    debug!("{:?}", response);
 
     Ok(response.text()?)
 }
