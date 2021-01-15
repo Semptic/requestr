@@ -4,7 +4,7 @@ method: POST
 
 body: |
   {
-    title: 'foo',
-    body: 'bar',
-    userId: 1,
+    title: '{{title}}',
+    body: '{{body}}',
+    userId: {{id}},
   }
