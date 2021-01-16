@@ -9,9 +9,15 @@ use template::Template;
 
 mod template;
 
+fn default_header() -> HashMap<String, String> {
+    HashMap::new()
+}
+
 #[derive(Debug, PartialEq, Serialize, Deserialize)]
 pub struct RequestConfig {
     pub url: String,
+    #[serde(default = "default_header")]
+    pub header: HashMap<String, String>,
     pub body: Option<String>,
     pub method: Option<String>,
 }
@@ -20,7 +26,7 @@ pub fn load_request_template(filename: &str) -> Result<Template, Box<dyn std::er
     let contents = fs::read_to_string(filename)?;
 
     let request_config_template = Template::new(contents.as_str());
-    debug!("{:?}", request_config_template);
+    debug!("{:#?}", request_config_template);
 
     Ok(request_config_template)
 }
@@ -50,7 +56,7 @@ pub fn validate_parameter(
     template: &Template,
     parameter: &HashMap<String, String>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    debug!("{:?}", parameter);
+    debug!("{:#?}", parameter);
 
     let provided_names: HashSet<_> = parameter.keys().cloned().collect();
     let names: HashSet<_> = template.names.iter().cloned().collect();
@@ -58,14 +64,14 @@ pub fn validate_parameter(
     let from_input: HashSet<_> = provided_names.difference(&names).collect();
     let from_template: HashSet<_> = names.difference(&provided_names).collect();
 
-    if (from_input.len() > 0) {
+    if from_input.len() > 0 {
         debug!(
             "Following parameters are defined but not used: {:?}",
             from_input
         );
     }
 
-    if (from_template.len() > 0) {
+    if from_template.len() > 0 {
         Err(InvalidParameter::new(
             &format!("Following parameters are missing: {:?}", from_template).to_string(),
         )
@@ -83,7 +89,7 @@ pub fn load_request_definition(
 
     let request_config: RequestConfig = serde_yaml::from_str(request_config_string.as_str())?;
 
-    debug!("{:?}", request_config);
+    debug!("{:#?}", request_config);
 
     Ok(request_config)
 }
@@ -92,6 +98,7 @@ pub fn make_request(
     url: &str,
     body: Option<String>,
     method: Option<String>,
+    header: HashMap<String, String>
 ) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
 
@@ -109,9 +116,13 @@ pub fn make_request(
         None => request_builder,
     };
 
+    let request_builder = header.into_iter().fold(request_builder, |request_builder,(name, value)| {
+        request_builder.header(name.as_str(), value.as_str())
+    });
+
     let response = request_builder.send()?;
 
-    debug!("{:?}", response);
+    debug!("{:#?}", response);
 
     Ok(response.text()?)
 }

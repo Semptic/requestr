@@ -21,23 +21,35 @@ fn main() {
 
     TermLogger::init(OPT.verbose.log_level().unwrap().to_level_filter(), config, TerminalMode::Mixed).unwrap();
 
-    let mut parameter: HashMap<String, String> = HashMap::new();
-    parameter.insert("title".to_string(), "title".to_string());
-    parameter.insert("body".to_string(), "body".to_string());
-    parameter.insert("id".to_string(), "1".to_string());
+    debug!("{:#?}", *OPT);
+
+    let parameter = params_to_map(&OPT.parameter);
 
     let template = load_request_template(OPT.request_config.as_str()).unwrap();
 
     validate_parameter(&template, &parameter).unwrap();
 
     let request_config = load_request_definition(&template, &parameter).unwrap();
-    debug!("{:?}", request_config);
 
-    let response = make_request(request_config.url.as_str(), request_config.body, request_config.method).unwrap();
+    let response = make_request(request_config.url.as_str(), request_config.body, request_config.method, request_config.header).unwrap();
 
     let obj: Value = serde_json::from_str(response.as_str()).unwrap();
 
     println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+}
+
+fn params_to_map(args: &Vec<String>) -> HashMap<String, String> {
+    args
+    .into_iter()
+    .filter_map(|item| {
+                
+        let mut parts = item.splitn(2, '='); // Split into 2 parts.
+        let key = parts.next()?;
+        let value = parts.next()?;
+        
+        Some((key.to_string(), value.to_string()))
+    })
+    .collect()
 }
 #[derive(Debug, StructOpt)]
 struct Opt {
@@ -45,5 +57,8 @@ struct Opt {
     #[structopt(flatten)]
     verbose: clap_verbosity_flag::Verbosity,
 
-    request_config: String
+    request_config: String,
+
+    #[structopt(short, long)]
+    parameter: Vec<String>,
 }

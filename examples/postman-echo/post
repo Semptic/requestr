@@ -1,0 +1,12 @@
+url: https://postman-echo.com/post?id={{id}}
+
+method: post
+
+header:
+  Content-Type: application/json
+
+body: |
+  {
+      "title": "{{title}}",
+      "summary": "{{summary}}"
+  }
