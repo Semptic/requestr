@@ -3,6 +3,14 @@ name = "requestr-core"
 version = "0.1.0"
 authors = ["Stefan Kuhn <stefan@kuhn.bayern>"]
 edition = "2018"
+license-file = "../LICENSE"
+description = "Core lib for tools to store, share and run http request templates easily"
+repository = "https://github.com/Semptic/requestr"
+readme = "../README.md"
+homepage = "https://github.com/Semptic/requestr"
+keywords = [ "http", "request", "share" ]
+workspace = ".."
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 

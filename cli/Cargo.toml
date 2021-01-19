@@ -1,14 +1,28 @@
 [package]
-name = "requestr"
+name = "requestr-cli"
 version = "0.1.0"
-authors = ["Stefan Kuhn <stefan@kuhn.bayern>"]
+authors = ["Stefan Kuhn <semptic@kuhn.cloud>"]
 edition = "2018"
+license-file = "../LICENSE"
+description = "CLI tool to store, share and run http request templates easily"
+repository = "https://github.com/Semptic/requestr"
+readme = "../README.md"
+homepage = "https://github.com/Semptic/requestr"
+categories = [ "command-line-utilities", "development-tools" ]
+keywords = [ "http", "request", "share" ]
+workspace = ".."
+
+[[bin]]
+name="requestr"
+path="src/main.rs"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-requestr-core = { path = "../core" }
+requestr-core = { path = "../core", version = "0.1.0"  }
 
+serde = { version = "~1.0", features = ["derive"] }
+serde_yaml = "~0.8"
 serde_json = "~1.0"
 
 clap-verbosity-flag = "~0.3"
