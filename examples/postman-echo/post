@@ -1,4 +1,4 @@
-url: https://postman-echo.com/post?id={{id}}
+url: https://postman-echo.com/post?id={{id}}&environment={{environment}}
 
 method: post
 
