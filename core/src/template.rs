@@ -33,28 +33,28 @@ impl Template {
     /// use std::collections::HashMap;
     /// use requestr_core::Template;
     ///
-    /// let template = Template::new("Hi, my name is {{name}} and I'm a {{lang}} developer.");
+    /// let template = Template::new("Hi, my name is {{ name }} and I'm a {{ lang }} developer.");
     ///
     /// let mut args: HashMap<String, String> = HashMap::new();
-    /// args.insert("name".to_string(), "Michael".to_string());
-    /// args.insert("lang".to_string(), "Rust".to_string());
+    /// args.insert("name".to_string(), "Stefan".to_string());
+    /// args.insert("lang".to_string(), "Scala".to_string());
     /// let s = template.render(&args);
     ///
-    /// assert_eq!(s, "Hi, my name is Michael and I'm a Rust developer.");
+    /// assert_eq!(s, "Hi, my name is Stefan and I'm a Scala developer.");
     /// ```
     ///
     /// ```
     /// use std::collections::HashMap;
     /// use requestr_core::Template;
     ///
-    /// let template = Template::new("Hi, my name is {{name}} and I'm a {{lang}} developer.");
+    /// let template = Template::new("Hi, my name is {{   name   }} and I'm a {{lang}} developer.");
 
     /// let mut args: HashMap<String, String> = HashMap::new();
-    /// args.insert("name".to_string(), "Vader".to_string());
-    /// args.insert("lang".to_string(), "Dart".to_string());
+    /// args.insert("name".to_string(), "undefined".to_string());
+    /// args.insert("lang".to_string(), "JavaScript".to_string());
     /// let s = template.render(&args);
     ///
-    /// assert_eq!(s, "Hi, my name is Vader and I'm a Dart developer.");
+    /// assert_eq!(s, "Hi, my name is undefined and I'm a JavaScript developer.");
     /// ```
     pub fn render(&self, vals: &HashMap<String, String>) -> String {
         let mut parts: Vec<&str> = vec![];
@@ -83,7 +83,7 @@ impl Template {
             // argument name with braces
             let arg = &template_str[*start..*end];
             // just the argument name
-            let arg_name = &arg[2..arg.len() - 2];
+            let arg_name = arg[2..arg.len() - 2].trim();
 
             // if value passed for argument then append it, otherwise append original argument
             // name with braces
