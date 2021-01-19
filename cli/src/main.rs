@@ -1,9 +1,9 @@
 #[macro_use]
 extern crate lazy_static;
+extern crate ansi_term;
 extern crate clap_verbosity_flag;
 extern crate loggerv;
 extern crate serde_json;
-extern crate ansi_term;
 use std::{
     collections::{BTreeMap, HashMap},
     fs,
@@ -30,7 +30,8 @@ fn main() {
     // but it must be enabled first using the `ansi_term::enable_ansi_support()` function. It is
     // conditionally compiled and only exists for Windows builds. To avoid build errors on
     // non-windows platforms, a cfg guard should be put in place.
-    #[cfg(windows)] ansi_term::enable_ansi_support().unwrap();
+    #[cfg(windows)]
+    ansi_term::enable_ansi_support().unwrap();
 
     loggerv::Logger::new()
         .max_level(OPT.verbose.log_level().unwrap())
