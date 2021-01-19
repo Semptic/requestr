@@ -5,9 +5,10 @@ use std::{
     collections::{HashMap, HashSet},
     error, fmt, fs,
 };
-use template::Template;
 
 mod template;
+
+pub use template::Template;
 
 fn default_header() -> HashMap<String, String> {
     HashMap::new()
@@ -98,7 +99,7 @@ pub fn make_request(
     url: &str,
     body: Option<String>,
     method: Option<String>,
-    header: HashMap<String, String>
+    header: HashMap<String, String>,
 ) -> Result<String, Box<dyn std::error::Error>> {
     let client = reqwest::blocking::Client::new();
 
@@ -116,9 +117,11 @@ pub fn make_request(
         None => request_builder,
     };
 
-    let request_builder = header.into_iter().fold(request_builder, |request_builder,(name, value)| {
-        request_builder.header(name.as_str(), value.as_str())
-    });
+    let request_builder = header
+        .into_iter()
+        .fold(request_builder, |request_builder, (name, value)| {
+            request_builder.header(name.as_str(), value.as_str())
+        });
 
     let response = request_builder.send()?;
 
