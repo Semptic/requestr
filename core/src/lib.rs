@@ -5,6 +5,7 @@ use serde_yaml;
 use std::{
     collections::{HashMap, HashSet},
     fs,
+    path::PathBuf,
 };
 use thiserror::Error;
 
@@ -25,7 +26,7 @@ pub struct RequestConfig {
     pub method: Option<String>,
 }
 
-pub fn load_request_template(filename: &str) -> Result<Template> {
+pub fn load_request_template(filename: &PathBuf) -> Result<Template> {
     let contents = fs::read_to_string(filename)?;
 
     let request_config_template = Template::new(contents.as_str());
@@ -111,7 +112,9 @@ pub fn make_request(
 
     debug!("{:#?}", response);
 
-    Ok(response.text()?)
+    let response_body = response.text()?;
+
+    Ok(response_body)
 }
 
 #[cfg(test)]

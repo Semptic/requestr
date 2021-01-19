@@ -4,6 +4,7 @@ extern crate ansi_term;
 extern crate clap_verbosity_flag;
 extern crate loggerv;
 extern crate serde_json;
+use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap},
     fs,
@@ -34,7 +35,7 @@ fn main() {
     ansi_term::enable_ansi_support().unwrap();
 
     loggerv::Logger::new()
-        .max_level(OPT.verbose.log_level().unwrap())
+        .max_level(OPT.verbosity.log_level().unwrap())
         .level(OPT.debug)
         .module_path(OPT.debug)
         .line_numbers(OPT.debug)
@@ -54,7 +55,7 @@ fn main() {
         }
     }
 
-    let template = load_request_template(OPT.request_config.as_str()).unwrap();
+    let template = load_request_template(&OPT.request_config).unwrap();
 
     validate_parameter(&template, &parameter).unwrap();
 
@@ -85,18 +86,28 @@ fn params_to_map(args: &Vec<String>) -> HashMap<String, String> {
         .collect()
 }
 #[derive(Debug, StructOpt)]
+#[structopt(
+    name = "requestr",
+    about = "Store, share and run http request templates easily."
+)]
 struct Opt {
     #[structopt(flatten)]
-    verbose: clap_verbosity_flag::Verbosity,
+    verbosity: clap_verbosity_flag::Verbosity,
 
-    request_config: String,
+    /// Path to the request definition.
+    #[structopt(parse(from_os_str))]
+    request_config: PathBuf,
 
+    /// Parameters you want to pass to your request definition. In the form of `key=value` (e.g title='My title').
     #[structopt(short, long)]
     parameter: Vec<String>,
 
+    /// Enables debug mode
     #[structopt(short, long)]
     debug: bool,
 
-    #[structopt(short, long)]
-    env: Option<String>,
+    /// Path to environment configuration to set multiple variables at once. This can be used to quickly switch 
+    /// between test and production environments.
+    #[structopt(parse(from_os_str), short, long)]
+    env: Option<PathBuf>,
 }
