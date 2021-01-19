@@ -1,10 +1,10 @@
 use anyhow::{anyhow, Result};
-use log::debug;
+use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::{
     collections::{HashMap, HashSet},
-    error, fmt, fs,
+    fs,
 };
 use thiserror::Error;
 
@@ -50,7 +50,7 @@ pub fn validate_parameter(template: &Template, parameter: &HashMap<String, Strin
     let from_template: HashSet<_> = names.difference(&provided_names).collect();
 
     if from_input.len() > 0 {
-        debug!(
+        info!(
             "Following parameters are defined but not used: {:?}",
             from_input
         );
