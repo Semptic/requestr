@@ -18,7 +18,7 @@ pub enum RequestrError {
     #[error("Following parameter are missing from the input: {0:#?}")]
     MissingParameter(Vec<String>),
     #[error("Unable to load Template from disk")]
-    OpeningTemplateFailed(#[from] io::Error),
+    OpeningTemplateFailed(String, io::Error),
     #[error("Parsing template failed")]
     TemplateParsingFailed(#[from] serde_yaml::Error),
     #[error("Wrong request config: {0}")]
@@ -43,7 +43,15 @@ pub struct RequestConfig {
 }
 
 pub fn load_request_template(filename: &PathBuf) -> ResultT<Template> {
-    let contents = fs::read_to_string(filename)?;
+    let contents = match fs::read_to_string(filename) {
+        Ok(contents) => contents,
+        Err(err) => {
+            return Err(RequestrError::OpeningTemplateFailed(
+                filename.to_string_lossy().to_string(),
+                err,
+            ))
+        }
+    };
 
     let request_config_template = Template::new(contents.as_str());
     debug!("{:#?}", request_config_template);
@@ -99,16 +107,18 @@ pub fn make_request(
     let client = reqwest::blocking::Client::new();
 
     let request_builder = match method.unwrap_or("GET".to_string()).to_uppercase().as_str() {
-        "DELETE" => Ok(client.delete(url)),
-        "GET" => Ok(client.get(url)),
-        "POST" => Ok(client.post(url)),
-        "PUT" => Ok(client.put(url)),
-        "PATCH" => Ok(client.put(url)),
-        method => Err(RequestrError::BrokenRequestConfig(format!(
-            "Unknown http method: {}",
-            method
-        ))),
-    }?;
+        "DELETE" => client.delete(url),
+        "GET" => client.get(url),
+        "POST" => client.post(url),
+        "PUT" => client.put(url),
+        "PATCH" => client.put(url),
+        method => {
+            return Err(RequestrError::BrokenRequestConfig(format!(
+                "Unknown http method: {}",
+                method
+            )))
+        }
+    };
 
     let request_builder = match body {
         Some(body) => request_builder.body(body),
