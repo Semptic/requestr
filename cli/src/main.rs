@@ -106,7 +106,7 @@ struct Opt {
     #[structopt(short, long)]
     debug: bool,
 
-    /// Path to environment configuration to set multiple variables at once. This can be used to quickly switch 
+    /// Path to environment configuration to set multiple variables at once. This can be used to quickly switch
     /// between test and production environments.
     #[structopt(parse(from_os_str), short, long)]
     env: Option<PathBuf>,
