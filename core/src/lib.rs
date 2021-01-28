@@ -1,17 +1,33 @@
-use anyhow::{anyhow, Result};
 use log::{debug, info};
 use serde::{Deserialize, Serialize};
 use serde_yaml;
 use std::{
     collections::{HashMap, HashSet},
-    fs,
+    fs, io,
     path::PathBuf,
 };
+
 use thiserror::Error;
 
 mod template;
 
 pub use template::Template;
+
+#[derive(Error, Debug)]
+pub enum RequestrError {
+    #[error("Following parameter are missing from the input: {0:#?}")]
+    MissingParameter(Vec<String>),
+    #[error("Unable to load Template from disk")]
+    OpeningTemplateFailed(#[from] io::Error),
+    #[error("Parsing template failed")]
+    TemplateParsingFailed(#[from] serde_yaml::Error),
+    #[error("Wrong request config: {0}")]
+    BrokenRequestConfig(String),
+    #[error("Request failed")]
+    UnknownRequestError(#[from] reqwest::Error),
+}
+
+pub type ResultT<T> = Result<T, RequestrError>;
 
 fn default_header() -> HashMap<String, String> {
     HashMap::new()
@@ -26,7 +42,7 @@ pub struct RequestConfig {
     pub method: Option<String>,
 }
 
-pub fn load_request_template(filename: &PathBuf) -> Result<Template> {
+pub fn load_request_template(filename: &PathBuf) -> ResultT<Template> {
     let contents = fs::read_to_string(filename)?;
 
     let request_config_template = Template::new(contents.as_str());
@@ -35,13 +51,7 @@ pub fn load_request_template(filename: &PathBuf) -> Result<Template> {
     Ok(request_config_template)
 }
 
-#[derive(Error, Debug)]
-#[error("InvalidParameter")] // TODO: Proper handling of errors, provide a list of fields for nicer handling in main
-pub struct InvalidParameter {
-    pub reason: String,
-}
-
-pub fn validate_parameter(template: &Template, parameter: &HashMap<String, String>) -> Result<()> {
+pub fn validate_parameter(template: &Template, parameter: &HashMap<String, String>) -> ResultT<()> {
     debug!("{:#?}", parameter);
 
     let provided_names: HashSet<_> = parameter.keys().cloned().collect();
@@ -58,10 +68,10 @@ pub fn validate_parameter(template: &Template, parameter: &HashMap<String, Strin
     }
 
     if from_template.len() > 0 {
-        Err(InvalidParameter {
-            reason: format!("Following parameters are missing: {:?}", from_template).to_string(),
-        }
-        .into())
+        Err(
+            RequestrError::MissingParameter(from_template.into_iter().map(|p| p.clone()).collect())
+                .into(),
+        )
     } else {
         Ok(())
     }
@@ -70,7 +80,7 @@ pub fn validate_parameter(template: &Template, parameter: &HashMap<String, Strin
 pub fn load_request_definition(
     template: &Template,
     parameter: &HashMap<String, String>,
-) -> Result<RequestConfig> {
+) -> ResultT<RequestConfig> {
     let request_config_string = template.render(parameter);
 
     let request_config: RequestConfig = serde_yaml::from_str(request_config_string.as_str())?;
@@ -85,7 +95,7 @@ pub fn make_request(
     body: Option<String>,
     method: Option<String>,
     header: HashMap<String, String>,
-) -> Result<String> {
+) -> ResultT<String> {
     let client = reqwest::blocking::Client::new();
 
     let request_builder = match method.unwrap_or("GET".to_string()).to_uppercase().as_str() {
@@ -94,7 +104,10 @@ pub fn make_request(
         "POST" => Ok(client.post(url)),
         "PUT" => Ok(client.put(url)),
         "PATCH" => Ok(client.put(url)),
-        method => Err(anyhow!("Unknown http method: {}", method)),
+        method => Err(RequestrError::BrokenRequestConfig(format!(
+            "Unknown http method: {}",
+            method
+        ))),
     }?;
 
     let request_builder = match body {
