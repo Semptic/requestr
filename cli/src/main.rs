@@ -4,6 +4,7 @@ extern crate ansi_term;
 extern crate clap_verbosity_flag;
 extern crate loggerv;
 extern crate serde_json;
+use anyhow::{Context, Result};
 use std::path::PathBuf;
 use std::{
     collections::{BTreeMap, HashMap},
@@ -19,7 +20,7 @@ use serde_yaml;
 // use simplelog::{ConfigBuilder, TermLogger, TerminalMode};
 use structopt::StructOpt;
 
-fn main() {
+fn main() -> Result<()> {
     lazy_static! {
         static ref OPT: Opt = Opt::from_args();
     }
@@ -35,7 +36,11 @@ fn main() {
     ansi_term::enable_ansi_support().unwrap();
 
     loggerv::Logger::new()
-        .max_level(OPT.verbosity.log_level().unwrap())
+        .max_level(
+            OPT.verbosity
+                .log_level()
+                .context("Failed to get log level")?,
+        )
         .level(OPT.debug)
         .module_path(OPT.debug)
         .line_numbers(OPT.debug)
@@ -47,19 +52,22 @@ fn main() {
     let mut parameter = params_to_map(&OPT.parameter);
 
     if let Some(env) = &OPT.env {
-        let contents = fs::read_to_string(env).unwrap();
-        let deserialized_map: BTreeMap<String, String> = serde_yaml::from_str(&contents).unwrap();
+        let contents = fs::read_to_string(env).with_context(|| format!("Failed loading environment config from {}", env.to_string_lossy()))?;
+        let deserialized_map: BTreeMap<String, String> =
+            serde_yaml::from_str(&contents).context("Failed to parse environment config")?;
 
         for (key, value) in deserialized_map {
             parameter.insert(key, value);
         }
     }
 
-    let template = load_request_template(&OPT.request_config).unwrap();
+    let template = load_request_template(&OPT.request_config)
+        .context("Failed loading request config template")?;
 
-    validate_parameter(&template, &parameter).unwrap();
+    validate_parameter(&template, &parameter).context("Failed to validate Parameter")?;
 
-    let request_config = load_request_definition(&template, &parameter).unwrap();
+    let request_config = load_request_definition(&template, &parameter)
+        .context("Failed to create request definition")?;
 
     let response = make_request(
         request_config.url.as_str(),
@@ -67,11 +75,16 @@ fn main() {
         request_config.method,
         request_config.header,
     )
-    .unwrap();
+    .context("Request failed")?;
 
-    let obj: Value = serde_json::from_str(response.as_str()).unwrap();
+    let obj: Value = serde_json::from_str(response.as_str()).context("Failed to parse response")?;
 
-    println!("{}", serde_json::to_string_pretty(&obj).unwrap());
+    println!(
+        "{}",
+        serde_json::to_string_pretty(&obj).context("Failed to prettify response")?
+    );
+
+    Ok(())
 }
 
 fn params_to_map(args: &Vec<String>) -> HashMap<String, String> {
