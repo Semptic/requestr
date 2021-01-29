@@ -7,7 +7,7 @@ Store, share and run http request templates easily
 
 ## Install
 
-Install the cli tool with `cargo install requestr`.
+Install the cli tool with `cargo install requestr-cli`.
 ## Usage
 
 ### Request Configuration
