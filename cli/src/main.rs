@@ -52,7 +52,12 @@ fn main() -> Result<()> {
     let mut parameter = params_to_map(&OPT.parameter);
 
     if let Some(env) = &OPT.env {
-        let contents = fs::read_to_string(env).with_context(|| format!("Failed loading environment config from {}", env.to_string_lossy()))?;
+        let contents = fs::read_to_string(env).with_context(|| {
+            format!(
+                "Failed loading environment config from {}",
+                env.to_string_lossy()
+            )
+        })?;
         let deserialized_map: BTreeMap<String, String> =
             serde_yaml::from_str(&contents).context("Failed to parse environment config")?;
 
@@ -77,12 +82,16 @@ fn main() -> Result<()> {
     )
     .context("Request failed")?;
 
-    let obj: Value = serde_json::from_str(response.as_str()).context("Failed to parse response")?;
+    let obj: Result<Value> =
+        serde_json::from_str(response.as_str()).context("Failed to parse response into json");
 
-    println!(
-        "{}",
-        serde_json::to_string_pretty(&obj).context("Failed to prettify response")?
-    );
+    match obj {
+        Ok(obj) => println!(
+            "{}",
+            serde_json::to_string_pretty(&obj).context("Failed to prettify response")?
+        ),
+        Err(_) => println!("{}", response.as_str()),
+    };
 
     Ok(())
 }
