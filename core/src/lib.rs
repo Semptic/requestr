@@ -17,7 +17,7 @@ pub use template::Template;
 pub enum RequestrError {
     #[error("Following parameter are missing from the input: {0:#?}")]
     MissingParameter(Vec<String>),
-    #[error("Unable to load Template from disk")]
+    #[error("Unable to load Template from {0}")]
     OpeningTemplateFailed(String, io::Error),
     #[error("Parsing template failed")]
     TemplateParsingFailed(#[from] serde_yaml::Error),
@@ -25,6 +25,8 @@ pub enum RequestrError {
     BrokenRequestConfig(String),
     #[error("Request failed")]
     UnknownRequestError(#[from] reqwest::Error),
+    #[error("Unknown Requestr Error")]
+    Unknown,
 }
 
 pub type ResultT<T> = Result<T, RequestrError>;
