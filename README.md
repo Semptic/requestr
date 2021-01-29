@@ -1,3 +1,6 @@
+[![Crates.io](https://img.shields.io/crates/v/requestr-cli?label=reqestr-cli)](https://crates.io/crates/requestr-cli)
+[![Crates.io](https://img.shields.io/crates/v/requestr-core?label=reqestr-core)](https://crates.io/crates/requestr-core)
+
 # requestr
 Store, share and run http request templates easily
 
