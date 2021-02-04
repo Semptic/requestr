@@ -1,8 +1,7 @@
 all: fmt check test clippy
 
 clippy: fmt check
-	cargo clippy -p requestr-core && \
-	cargo clippy -p requestr-cli
+	cargo clippy --all-targets --all-features -- -D warnings
 
 fmt:
 	cargo fmt --all

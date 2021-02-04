@@ -16,8 +16,6 @@ use requestr_core::{
     load_request_definition, load_request_template, make_request, validate_parameter,
 };
 use serde_json::Value;
-use serde_yaml;
-// use simplelog::{ConfigBuilder, TermLogger, TerminalMode};
 use structopt::StructOpt;
 
 fn main() -> Result<()> {
@@ -96,8 +94,8 @@ fn main() -> Result<()> {
     Ok(())
 }
 
-fn params_to_map(args: &Vec<String>) -> HashMap<String, String> {
-    args.into_iter()
+fn params_to_map(args: &[String]) -> HashMap<String, String> {
+    args.iter()
         .filter_map(|item| {
             let mut parts = item.splitn(2, '='); // Split into 2 parts.
             let key = parts.next()?;
