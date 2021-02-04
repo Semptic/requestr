@@ -1,13 +1,18 @@
-all: fmt check test
+all: fmt check test clippy
+
+clippy: fmt check
+	cargo clippy -p requestr-core && \
+	cargo clippy -p requestr-cli
 
 fmt:
 	cargo fmt --all
 
-test:
+check: fmt
+	cargo check --all
+
+test: check
 	cargo test --all
 
-check:
-	cargo check --all
 
 publish: test
 	cd core; cargo publish && \
