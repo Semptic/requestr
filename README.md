@@ -1,7 +1,7 @@
 [![Crates.io](https://img.shields.io/crates/v/requestr-cli?label=reqestr-cli)](https://crates.io/crates/requestr-cli)
 [![Crates.io](https://img.shields.io/crates/v/requestr-core?label=reqestr-core)](https://crates.io/crates/requestr-core)
 [![GitHub](https://img.shields.io/github/license/Semptic/requestr)](https://github.com/Semptic/requestr/blob/main/LICENSE)
-![Test github action](https://github.com/Semptic/requestr/.github/workflows/test.yml/badge.svg?branch=main)
+![test](https://github.com/Semptic/requestr/workflows/test/badge.svg)
 ![codecov](https://codecov.io/gh/Semptic/requestr/branch/main/graph/badge.svg?token=S6EB8UJVPD)
 
 
