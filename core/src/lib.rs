@@ -1,6 +1,5 @@
 use log::{debug, info};
 use serde::{Deserialize, Serialize};
-use serde_yaml;
 use std::{
     collections::{HashMap, HashSet},
     fs, io,
@@ -70,18 +69,17 @@ pub fn validate_parameter(template: &Template, parameter: &HashMap<String, Strin
     let from_input: HashSet<_> = provided_names.difference(&names).collect();
     let from_template: HashSet<_> = names.difference(&provided_names).collect();
 
-    if from_input.len() > 0 {
+    if !from_input.is_empty() {
         info!(
             "Following parameters are defined but not used: {:?}",
             from_input
         );
     }
 
-    if from_template.len() > 0 {
-        Err(
-            RequestrError::MissingParameter(from_template.into_iter().map(|p| p.clone()).collect())
-                .into(),
-        )
+    if !from_template.is_empty() {
+        Err(RequestrError::MissingParameter(
+            from_template.into_iter().cloned().collect(),
+        ))
     } else {
         Ok(())
     }
@@ -108,7 +106,11 @@ pub fn make_request(
 ) -> ResultT<String> {
     let client = reqwest::blocking::Client::new();
 
-    let request_builder = match method.unwrap_or("GET".to_string()).to_uppercase().as_str() {
+    let request_builder = match method
+        .unwrap_or_else(|| "GET".to_string())
+        .to_uppercase()
+        .as_str()
+    {
         "DELETE" => client.delete(url),
         "GET" => client.get(url),
         "POST" => client.post(url),
