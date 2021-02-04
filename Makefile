@@ -1,18 +1,20 @@
-all: fmt check test clippy
+all: fmt test clippy
 
-clippy: fmt check
+clippy:
 	cargo clippy --all-targets --all-features -- -D warnings
 
 fmt:
 	cargo fmt --all
 
-check: fmt
+check-fmt:
+	cargo fmt --all -- --check
+
+check: 
 	cargo check --all
 
 test: check
 	cargo test --all
 
-
-publish: test
+publish: check-fmt test clippy
 	cd core; cargo publish && \
 	cd ../cli; cargo publish 
